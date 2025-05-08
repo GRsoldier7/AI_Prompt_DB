@@ -1,0 +1,3 @@
+@echo off
+echo Starting Memory MCP server...
+npx -y @modelcontextprotocol/server-memory

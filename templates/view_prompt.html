@@ -1,0 +1,137 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ prompt['Prompt Title'] }}{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>{{ prompt['Prompt Title'] }}</h2>
+            <div class="btn-group" role="group">
+                <a href="/edit/{{ prompt['Prompt ID'] }}" class="btn btn-warning">Edit</a>
+                <a href="/analyze/{{ prompt['Prompt ID'] }}" class="btn btn-info">Analyze</a>
+                <a href="/improve/{{ prompt['Prompt ID'] }}" class="btn btn-success">Improve</a>
+                <a href="/variations/{{ prompt['Prompt ID'] }}" class="btn btn-primary">Generate Variations</a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-8">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Prompt Text</h3>
+            </div>
+            <div class="card-body">
+                <pre class="prompt-text p-3 bg-light">{{ prompt['Prompt Text'] }}</pre>
+            </div>
+        </div>
+        
+        {% if prompt['Improved Versions'] %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Improved Versions</h3>
+            </div>
+            <div class="card-body">
+                <pre class="improved-versions p-3 bg-light">{{ prompt['Improved Versions'] }}</pre>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if prompt['Improvement Suggestions'] %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Improvement Suggestions</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ prompt['Improvement Suggestions'] }}</p>
+            </div>
+        </div>
+        {% endif %}
+        
+        {% if prompt['Notes'] %}
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Notes</h3>
+            </div>
+            <div class="card-body">
+                <p>{{ prompt['Notes'] }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+    
+    <div class="col-md-4">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Details</h3>
+            </div>
+            <div class="card-body">
+                <table class="table">
+                    <tbody>
+                        <tr>
+                            <th>ID</th>
+                            <td>{{ prompt['Prompt ID'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Category</th>
+                            <td>{{ prompt['Category'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Subcategory</th>
+                            <td>{{ prompt['Subcategory'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Primary Tool</th>
+                            <td>{{ prompt['Primary Tool'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Compatible Tools</th>
+                            <td>{{ prompt['Compatible Tools'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Effectiveness Rating</th>
+                            <td>
+                                {% if prompt['Effectiveness Rating'] %}
+                                    <span class="badge bg-{{ 'success' if prompt['Effectiveness Rating']|int >= 7 else 'warning' if prompt['Effectiveness Rating']|int >= 4 else 'danger' }}">
+                                        {{ prompt['Effectiveness Rating'] }}/10
+                                    </span>
+                                {% else %}
+                                    <span class="text-muted">Not rated</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Tags</th>
+                            <td>
+                                {% if prompt['Tags'] %}
+                                    {% for tag in prompt['Tags'].split(',') %}
+                                        <span class="badge bg-secondary">{{ tag.strip() }}</span>
+                                    {% endfor %}
+                                {% else %}
+                                    <span class="text-muted">No tags</span>
+                                {% endif %}
+                            </td>
+                        </tr>
+                        <tr>
+                            <th>Created</th>
+                            <td>{{ prompt['Creation Date'] }}</td>
+                        </tr>
+                        <tr>
+                            <th>Last Modified</th>
+                            <td>{{ prompt['Last Modified'] }}</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Add any prompt-specific JavaScript here
+</script>
+{% endblock %}

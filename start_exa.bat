@@ -1,0 +1,3 @@
+@echo off
+echo Starting Exa MCP server...
+npx -y exa-mcp-server --tools=web_search_exa,research_paper_search,crawling,wikipedia_search_exa

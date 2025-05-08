@@ -1,0 +1,68 @@
+{% extends 'base.html' %}
+
+{% block title %}Improve Prompt{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Improve Prompt: {{ prompt['Prompt Title'] }}</h2>
+            <a href="/prompt/{{ prompt['Prompt ID'] }}" class="btn btn-secondary">Back to Prompt</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Original Prompt</h3>
+            </div>
+            <div class="card-body">
+                <pre class="prompt-text p-3 bg-light">{{ prompt['Prompt Text'] }}</pre>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Improve for Specific Model</h3>
+            </div>
+            <div class="card-body">
+                <form action="/improve/{{ prompt['Prompt ID'] }}" method="post">
+                    <div class="mb-3">
+                        <label for="model" class="form-label">Target Model</label>
+                        <input type="text" class="form-control" id="model" name="model" 
+                               value="{{ prompt['Primary Tool'] }}" list="models" required>
+                        <datalist id="models">
+                            <option value="gpt-4">GPT-4</option>
+                            <option value="claude-3">Claude 3</option>
+                            <option value="claude-3-opus">Claude 3 Opus</option>
+                            <option value="claude-3-sonnet">Claude 3 Sonnet</option>
+                            <option value="claude-3-haiku">Claude 3 Haiku</option>
+                            <option value="gemini-pro">Gemini Pro</option>
+                            <option value="llama-3">Llama 3</option>
+                            <option value="mistral">Mistral</option>
+                            <option value="general">General (model-agnostic)</option>
+                        </datalist>
+                        <div class="form-text">
+                            Specify the model you want to optimize this prompt for. The AI will tailor improvements
+                            specifically for this model's capabilities and limitations.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Note:</strong> This process will use OpenRouter to generate an improved version of your prompt
+                        optimized for the selected model. The improved version will be saved alongside the original prompt.</p>
+                        <p>This may take a few moments to complete.</p>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Improve Prompt</button>
+                        <a href="/prompt/{{ prompt['Prompt ID'] }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

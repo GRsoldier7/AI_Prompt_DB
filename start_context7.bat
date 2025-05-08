@@ -1,0 +1,3 @@
+@echo off
+echo Starting Context7 MCP server...
+npx -y @upstash/context7-mcp@latest

@@ -1,0 +1,110 @@
+{% extends 'base.html' %}
+
+{% block title %}Add New Prompt{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Add New Prompt</h2>
+            </div>
+            <div class="card-body">
+                <form action="/add" method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Prompt Text</label>
+                        <textarea class="form-control" id="text" name="text" rows="6" required></textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="category" name="category" list="categories">
+                            <datalist id="categories">
+                                <!-- Categories will be populated via JavaScript -->
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="subcategory" class="form-label">Subcategory</label>
+                            <input type="text" class="form-control" id="subcategory" name="subcategory">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tool" class="form-label">Primary Tool</label>
+                            <input type="text" class="form-control" id="tool" name="tool" list="tools">
+                            <datalist id="tools">
+                                <!-- Tools will be populated via JavaScript -->
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="compatible" class="form-label">Compatible Tools (comma-separated)</label>
+                            <input type="text" class="form-control" id="compatible" name="compatible">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" id="tags" name="tags">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3"></textarea>
+                    </div>
+                    
+                    <div class="mb-3 form-check">
+                        <input type="checkbox" class="form-check-input" id="auto_categorize" name="auto_categorize">
+                        <label class="form-check-label" for="auto_categorize">Auto-categorize using AI</label>
+                        <div class="form-text">This will use OpenRouter to automatically suggest a category, subcategory, and tags.</div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Add Prompt</button>
+                        <a href="/" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch categories and tools when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch categories
+        fetch('/api/categories')
+            .then(response => response.json())
+            .then(categories => {
+                const categoriesList = document.getElementById('categories');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    categoriesList.appendChild(option);
+                });
+            });
+        
+        // Fetch tools
+        fetch('/api/tools')
+            .then(response => response.json())
+            .then(tools => {
+                const toolsList = document.getElementById('tools');
+                tools.forEach(tool => {
+                    const option = document.createElement('option');
+                    option.value = tool;
+                    toolsList.appendChild(option);
+                });
+            });
+    });
+</script>
+{% endblock %}

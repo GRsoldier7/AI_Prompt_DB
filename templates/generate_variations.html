@@ -1,0 +1,87 @@
+{% extends 'base.html' %}
+
+{% block title %}Generate Variations{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <div class="col-md-12">
+        <div class="d-flex justify-content-between align-items-center">
+            <h2>Generate Variations: {{ prompt['Prompt Title'] }}</h2>
+            <a href="/prompt/{{ prompt['Prompt ID'] }}" class="btn btn-secondary">Back to Prompt</a>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <div class="card mb-4">
+            <div class="card-header">
+                <h3 class="card-title">Original Prompt</h3>
+            </div>
+            <div class="card-body">
+                <pre class="prompt-text p-3 bg-light">{{ prompt['Prompt Text'] }}</pre>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header">
+                <h3 class="card-title">Generate Variations for Multiple Models</h3>
+            </div>
+            <div class="card-body">
+                <form action="/variations/{{ prompt['Prompt ID'] }}" method="post">
+                    <div class="mb-3">
+                        <label for="models" class="form-label">Target Models (comma-separated)</label>
+                        <input type="text" class="form-control" id="models" name="models" 
+                               value="gpt-4,claude-3,gemini-pro" required>
+                        <div class="form-text">
+                            Specify the models you want to optimize this prompt for, separated by commas.
+                            The AI will generate variations tailored to each model's capabilities.
+                        </div>
+                    </div>
+                    
+                    <div class="alert alert-info">
+                        <p><strong>Note:</strong> This process will use OpenRouter to generate multiple variations of your prompt,
+                        each optimized for a different model. All variations will be saved alongside the original prompt.</p>
+                        <p>This may take a few moments to complete, especially if you specify many models.</p>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <h4>Common Model Names</h4>
+                        <div class="row">
+                            <div class="col-md-4">
+                                <ul class="list-group">
+                                    <li class="list-group-item">gpt-4</li>
+                                    <li class="list-group-item">gpt-3.5-turbo</li>
+                                    <li class="list-group-item">claude-3-opus</li>
+                                    <li class="list-group-item">claude-3-sonnet</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <ul class="list-group">
+                                    <li class="list-group-item">claude-3-haiku</li>
+                                    <li class="list-group-item">gemini-pro</li>
+                                    <li class="list-group-item">llama-3</li>
+                                    <li class="list-group-item">mistral</li>
+                                </ul>
+                            </div>
+                            <div class="col-md-4">
+                                <ul class="list-group">
+                                    <li class="list-group-item">mixtral</li>
+                                    <li class="list-group-item">palm-2</li>
+                                    <li class="list-group-item">codey</li>
+                                    <li class="list-group-item">general</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Generate Variations</button>
+                        <a href="/prompt/{{ prompt['Prompt ID'] }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

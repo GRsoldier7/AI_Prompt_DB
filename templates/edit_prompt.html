@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+
+{% block title %}Edit Prompt{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-12">
+        <div class="card">
+            <div class="card-header">
+                <h2 class="card-title">Edit Prompt</h2>
+            </div>
+            <div class="card-body">
+                <form action="/edit/{{ prompt['Prompt ID'] }}" method="post">
+                    <div class="mb-3">
+                        <label for="title" class="form-label">Title</label>
+                        <input type="text" class="form-control" id="title" name="title" value="{{ prompt['Prompt Title'] }}" required>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="text" class="form-label">Prompt Text</label>
+                        <textarea class="form-control" id="text" name="text" rows="6" required>{{ prompt['Prompt Text'] }}</textarea>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="category" class="form-label">Category</label>
+                            <input type="text" class="form-control" id="category" name="category" value="{{ prompt['Category'] }}" list="categories">
+                            <datalist id="categories">
+                                <!-- Categories will be populated via JavaScript -->
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="subcategory" class="form-label">Subcategory</label>
+                            <input type="text" class="form-control" id="subcategory" name="subcategory" value="{{ prompt['Subcategory'] }}">
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-3">
+                        <div class="col-md-6">
+                            <label for="tool" class="form-label">Primary Tool</label>
+                            <input type="text" class="form-control" id="tool" name="tool" value="{{ prompt['Primary Tool'] }}" list="tools">
+                            <datalist id="tools">
+                                <!-- Tools will be populated via JavaScript -->
+                            </datalist>
+                        </div>
+                        
+                        <div class="col-md-6">
+                            <label for="compatible" class="form-label">Compatible Tools (comma-separated)</label>
+                            <input type="text" class="form-control" id="compatible" name="compatible" value="{{ prompt['Compatible Tools'] }}">
+                        </div>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="tags" class="form-label">Tags (comma-separated)</label>
+                        <input type="text" class="form-control" id="tags" name="tags" value="{{ prompt['Tags'] }}">
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="notes" class="form-label">Notes</label>
+                        <textarea class="form-control" id="notes" name="notes" rows="3">{{ prompt['Notes'] }}</textarea>
+                    </div>
+                    
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-primary">Update Prompt</button>
+                        <a href="/prompt/{{ prompt['Prompt ID'] }}" class="btn btn-secondary">Cancel</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    // Fetch categories and tools when the page loads
+    document.addEventListener('DOMContentLoaded', function() {
+        // Fetch categories
+        fetch('/api/categories')
+            .then(response => response.json())
+            .then(categories => {
+                const categoriesList = document.getElementById('categories');
+                categories.forEach(category => {
+                    const option = document.createElement('option');
+                    option.value = category;
+                    categoriesList.appendChild(option);
+                });
+            });
+        
+        // Fetch tools
+        fetch('/api/tools')
+            .then(response => response.json())
+            .then(tools => {
+                const toolsList = document.getElementById('tools');
+                tools.forEach(tool => {
+                    const option = document.createElement('option');
+                    option.value = tool;
+                    toolsList.appendChild(option);
+                });
+            });
+    });
+</script>
+{% endblock %}

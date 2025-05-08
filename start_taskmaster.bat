@@ -1,0 +1,3 @@
+@echo off
+echo Starting Taskmaster MCP server...
+npx -y task-master-ai
