@@ -51,3 +51,6 @@ n8n-integrations-452015-811dc210bea2.json
 *auth*
 *oauth*
 *service-account*
+
+# Exceptions - files to include despite above patterns
+!mcp-servers-config.json

@@ -1,0 +1,84 @@
+{
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"],
+      "env": {
+        "DEFAULT_MINIMUM_TOKENS": "10000"
+      },
+      "portRange": {
+        "start": 3000,
+        "end": 3100
+      },
+      "description": "Context7 provides up-to-date documentation for libraries and frameworks"
+    },
+    "taskmaster": {
+      "command": "npx",
+      "args": ["-y", "task-master-ai"],
+      "env": {
+        "ANTHROPIC_API_KEY": "${ANTHROPIC_API_KEY}"
+      },
+      "portRange": {
+        "start": 3101,
+        "end": 3200
+      },
+      "description": "AI-powered task management system"
+    },
+    "exa": {
+      "command": "npx",
+      "args": ["-y", "exa-mcp-server", "--tools=web_search_exa,research_paper_search,crawling,wikipedia_search_exa"],
+      "env": {
+        "EXA_API_KEY": "${EXA_API_KEY}"
+      },
+      "portRange": {
+        "start": 3201,
+        "end": 3300
+      },
+      "description": "Web search capabilities for AI models"
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"],
+      "portRange": {
+        "start": 3301,
+        "end": 3400
+      },
+      "description": "Persistent memory for AI models"
+    },
+    "knowledge": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-knowledge"],
+      "portRange": {
+        "start": 3401,
+        "end": 3500
+      },
+      "description": "Knowledge graph for AI models"
+    },
+    "mcp-use": {
+      "command": "python",
+      "args": ["-m", "mcp_use.cli"],
+      "env": {
+        "OPENROUTER_API_KEY": "${OPENROUTER_API_KEY}",
+        "OPENROUTER_MODEL": "${OPENROUTER_MODEL}"
+      },
+      "portRange": {
+        "start": 3501,
+        "end": 3600
+      },
+      "description": "Connects multiple MCP servers",
+      "dependencies": {
+        "pip": ["mcp_use", "fastembed"]
+      }
+    }
+  },
+  "settings": {
+    "defaultPortRange": {
+      "start": 3601,
+      "end": 4000
+    },
+    "scanAllPorts": true,
+    "autoInstallDependencies": true,
+    "startupDelay": 1000,
+    "maxStartupRetries": 3
+  }
+}
