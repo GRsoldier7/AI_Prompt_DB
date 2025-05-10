@@ -78,62 +78,96 @@ async function scanAllPorts() {
 
 // Function to start an MCP server with a specific port
 async function startMCPServer(serverName, command, args, env = {}, usedPorts) {
-  console.log(`Starting ${serverName} MCP server...`);
+  return new Promise(async (resolve, reject) => {
+    try {
+      console.log(`Starting ${serverName} MCP server...`);
 
-  // Determine port range for this server
-  const portRange = DEFAULT_PORT_RANGES[serverName] || DEFAULT_PORT_RANGES.default;
+      // Determine port range for this server
+      const portRange = DEFAULT_PORT_RANGES[serverName] || DEFAULT_PORT_RANGES.default;
 
-  // Find an available port
-  const port = await findAvailablePort(portRange.start, portRange.end);
+      // Find an available port
+      const port = await findAvailablePort(portRange.start, portRange.end);
 
-  // Prepare environment variables
-  const processEnv = { ...process.env, PORT: port.toString() };
+      // Prepare environment variables
+      const processEnv = { ...process.env, PORT: port.toString() };
 
-  // Replace environment variable placeholders with actual values
-  for (const [key, value] of Object.entries(env)) {
-    if (typeof value === 'string' && value.startsWith('${') && value.endsWith('}')) {
-      const envVarName = value.slice(2, -1);
-      processEnv[key] = process.env[envVarName] || '';
-      if (!processEnv[key]) {
-        console.warn(`Warning: Environment variable ${envVarName} is not set for ${serverName}`);
+      // Replace environment variable placeholders with actual values
+      for (const [key, value] of Object.entries(env)) {
+        if (typeof value === 'string' && value.startsWith('${') && value.endsWith('}')) {
+          const envVarName = value.slice(2, -1);
+          processEnv[key] = process.env[envVarName] || '';
+          if (!processEnv[key]) {
+            console.warn(`Warning: Environment variable ${envVarName} is not set for ${serverName}`);
+          }
+        } else {
+          processEnv[key] = value;
+        }
       }
-    } else {
-      processEnv[key] = value;
+
+      // Add port to args if needed
+      const finalArgs = [...args];
+
+      // Different servers might expect port in different formats
+      // Check if args already include a port specification
+      if (!args.some(arg => arg.includes('--port') || arg.includes('-p'))) {
+        // Handle different server types
+        if (serverName === 'mcp-use') {
+          // MCP-use uses environment variables for port
+          processEnv.PORT = port.toString();
+        } else if (serverName === 'memory' || serverName === 'knowledge') {
+          // These servers might use a different format
+          finalArgs.push('--port', port.toString());
+        } else {
+          // Default format
+          finalArgs.push('--port', port.toString());
+        }
+      }
+
+      // Start the MCP server process
+      const serverProcess = spawn(command, finalArgs, {
+        env: processEnv,
+        stdio: 'inherit'
+      });
+
+      // Set a timeout to check if the server starts successfully
+      const startTimeout = setTimeout(() => {
+        // If we reach this point, the server didn't exit immediately
+        // which is a good sign. Store server information
+        runningServers[serverName] = {
+          process: serverProcess,
+          port: port,
+          startTime: new Date()
+        };
+
+        console.log(`${serverName} server started on port ${port}`);
+        resolve(serverProcess);
+      }, 2000); // Wait 2 seconds to see if the server crashes immediately
+
+      // Handle process events
+      serverProcess.on('error', (error) => {
+        clearTimeout(startTimeout);
+        console.error(`Error starting ${serverName} server:`, error);
+        delete runningServers[serverName];
+        reject(error);
+      });
+
+      serverProcess.on('close', (code) => {
+        // If the process closes before the timeout, it failed to start
+        if (startTimeout) {
+          clearTimeout(startTimeout);
+          console.error(`${serverName} server exited immediately with code ${code}`);
+          delete runningServers[serverName];
+          reject(new Error(`Server exited immediately with code ${code}`));
+        } else {
+          // Normal termination after successful start
+          console.log(`${serverName} server exited with code ${code}`);
+          delete runningServers[serverName];
+        }
+      });
+    } catch (error) {
+      reject(error);
     }
-  }
-
-  // Add port to args if needed
-  const finalArgs = [...args];
-  if (!args.some(arg => arg.includes('--port') || arg.includes('-p'))) {
-    finalArgs.push('--port', port.toString());
-  }
-
-  // Start the MCP server process
-  const serverProcess = spawn(command, finalArgs, {
-    env: processEnv,
-    stdio: 'inherit'
   });
-
-  // Store server information
-  runningServers[serverName] = {
-    process: serverProcess,
-    port: port,
-    startTime: new Date()
-  };
-
-  // Handle process events
-  serverProcess.on('error', (error) => {
-    console.error(`Error starting ${serverName} server:`, error);
-    delete runningServers[serverName];
-  });
-
-  serverProcess.on('close', (code) => {
-    console.log(`${serverName} server exited with code ${code}`);
-    delete runningServers[serverName];
-  });
-
-  console.log(`${serverName} server started on port ${port}`);
-  return serverProcess;
 }
 
 // Function to stop all running servers
@@ -143,7 +177,39 @@ function stopAllServers() {
   for (const [serverName, server] of Object.entries(runningServers)) {
     if (server.process && !server.process.killed) {
       console.log(`Stopping ${serverName} server on port ${server.port}...`);
-      server.process.kill();
+
+      try {
+        // Different servers might need different termination methods
+        if (process.platform === 'win32') {
+          // On Windows, use taskkill to ensure all child processes are terminated
+          exec(`taskkill /PID ${server.process.pid} /T /F`, (error) => {
+            if (error) {
+              // Fallback to regular kill if taskkill fails
+              try {
+                server.process.kill('SIGTERM');
+              } catch (killError) {
+                console.error(`Error stopping ${serverName} server: ${killError.message}`);
+              }
+            }
+          });
+        } else {
+          // On Unix-like systems, use SIGTERM
+          server.process.kill('SIGTERM');
+
+          // If the server doesn't terminate within 3 seconds, use SIGKILL
+          setTimeout(() => {
+            if (server.process && !server.process.killed) {
+              try {
+                server.process.kill('SIGKILL');
+              } catch (error) {
+                // Ignore errors, the process might have terminated already
+              }
+            }
+          }, 3000);
+        }
+      } catch (error) {
+        console.error(`Error stopping ${serverName} server: ${error.message}`);
+      }
     }
   }
 
@@ -243,25 +309,75 @@ async function startAllServers() {
 
     // Start each server
     const startPromises = [];
+    const serverResults = {};
+
     for (const [serverName, serverConfig] of Object.entries(config.mcpServers)) {
       const { command, args, env } = serverConfig;
 
       // Add a small delay between starting servers to avoid port conflicts
       await new Promise(resolve => setTimeout(resolve, startupDelay));
 
-      startPromises.push(startMCPServer(serverName, command, args, env, usedPorts));
+      console.log(`Starting ${serverName} server...`);
+
+      // Try to start the server with retries
+      let serverStarted = false;
+      let retryCount = 0;
+
+      while (!serverStarted && retryCount < maxRetries) {
+        try {
+          const serverProcess = await startMCPServer(serverName, command, args, env, usedPorts);
+          serverResults[serverName] = { success: true, process: serverProcess };
+          serverStarted = true;
+        } catch (error) {
+          retryCount++;
+          console.error(`Error starting ${serverName} server (attempt ${retryCount}/${maxRetries}): ${error.message}`);
+
+          if (retryCount < maxRetries) {
+            console.log(`Retrying in ${startupDelay / 1000} seconds...`);
+            await new Promise(resolve => setTimeout(resolve, startupDelay));
+          } else {
+            console.error(`Failed to start ${serverName} server after ${maxRetries} attempts`);
+            serverResults[serverName] = { success: false, error: error.message };
+          }
+        }
+      }
     }
 
-    await Promise.all(startPromises);
+    // Check if any servers failed to start
+    const failedServers = Object.entries(serverResults)
+      .filter(([_, result]) => !result.success)
+      .map(([name, _]) => name);
+
+    if (failedServers.length > 0) {
+      console.error(`Failed to start the following servers: ${failedServers.join(', ')}`);
+    }
 
     console.log('\n='.repeat(25));
-    console.log('All MCP servers started successfully');
+
+    if (failedServers.length === 0) {
+      console.log('All MCP servers started successfully');
+    } else {
+      console.log(`${Object.keys(config.mcpServers).length - failedServers.length} of ${Object.keys(config.mcpServers).length} MCP servers started successfully`);
+    }
+
     console.log('='.repeat(25));
     console.log('Server Status:');
-    for (const [name, server] of Object.entries(runningServers)) {
-      const uptime = Math.round((new Date() - server.startTime) / 1000);
-      console.log(`- ${name}: running on port ${server.port} (up for ${uptime}s)`);
+
+    for (const [name, serverConfig] of Object.entries(config.mcpServers)) {
+      if (runningServers[name]) {
+        const server = runningServers[name];
+        const uptime = Math.round((new Date() - server.startTime) / 1000);
+        console.log(`- ✅ ${name}: running on port ${server.port} (up for ${uptime}s)`);
+      } else {
+        const result = serverResults[name];
+        if (result && !result.success) {
+          console.log(`- ❌ ${name}: failed to start (${result.error})`);
+        } else {
+          console.log(`- ❓ ${name}: unknown status`);
+        }
+      }
     }
+
     console.log('='.repeat(25));
     console.log('Press Ctrl+C to stop all servers');
     console.log('='.repeat(25));
