@@ -69,11 +69,26 @@
       "dependencies": {
         "pip": ["mcp_use", "fastembed"]
       }
+    },
+    "heroku": {
+      "command": "npx",
+      "args": ["-y", "@heroku/mcp-server"],
+      "env": {
+        "HEROKU_API_KEY": "${HEROKU_API_KEY}"
+      },
+      "portRange": {
+        "start": 3601,
+        "end": 3700
+      },
+      "description": "Heroku Platform MCP Server for managing Heroku apps, dynos, add-ons, and databases",
+      "dependencies": {
+        "npm": ["@heroku/mcp-server"]
+      }
     }
   },
   "settings": {
     "defaultPortRange": {
-      "start": 3601,
+      "start": 3701,
       "end": 4000
     },
     "scanAllPorts": true,
